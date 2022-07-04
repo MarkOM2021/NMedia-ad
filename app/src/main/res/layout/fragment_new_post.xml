@@ -20,13 +20,16 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+
             <EditText
                 android:id="@+id/edit"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="@dimen/common_spacing"
                 android:background="@android:color/transparent"
-                android:inputType="textMultiLine"
-                android:padding="@dimen/common_spacing" />
+                android:hint="@string/content_hint"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine" />
 
             <FrameLayout
                 android:id="@+id/photoContainer"
@@ -89,5 +92,31 @@
             app:icon="@drawable/ic_camera_24dp" />
     </LinearLayout>
 
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="@dimen/large_spacing"
+            android:layout_marginBottom="@dimen/large_spacing"
+            android:contentDescription="@string/description_post_save"
+            app:srcCompat="@drawable/ic_ok_24" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/cancelEditing"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="@dimen/large_spacing"
+            android:layout_marginBottom="@dimen/large_spacing"
+            android:contentDescription="@string/Cancel"
+            app:backgroundTint="#E91E63"
+            app:srcCompat="@drawable/ic_close_24" />
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

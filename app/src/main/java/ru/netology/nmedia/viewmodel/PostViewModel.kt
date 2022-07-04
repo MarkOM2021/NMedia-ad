@@ -38,6 +38,7 @@ class PostViewModel @Inject constructor(
     private val repository: PostRepository,
     auth: AppAuth,
 ) : ViewModel() {
+    private val _data = MutableLiveData<FeedModel>()
     val data: LiveData<FeedModel> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             repository.data
@@ -121,10 +122,118 @@ class PostViewModel @Inject constructor(
     }
 
     fun likeById(id: Long) {
-        TODO()
+        lastAction = null
+        lastLikedID = null
+        viewModelScope.launch {
+            try {
+                repository.likeById(id)
+                _data.postValue(
+                    _data.value?.copy(
+                        posts = data.value?.posts.orEmpty()
+                            .map {
+                                if (it.id == id) it.copy(likedByMe = true, likes = it.likes + 1)
+                                else it
+                            })
+                )
+                _dataState.value = FeedModelState()
+            } catch (e: Exception) {
+                lastAction = ActionType.LIKE
+                lastLikedID = id
+                _dataState.value = FeedModelState(error = true)
+            }
+        }
+    }
+
+    fun disLikeById(id: Long) {
+        lastAction = null
+        lastDisLikedID = null
+        viewModelScope.launch {
+            try {
+                repository.disLikeById(id)
+                _data.postValue(
+                    _data.value?.copy(
+                        posts = data.value?.posts.orEmpty()
+                            .map {
+                                if (it.id == id) it.copy(likedByMe = false, likes = it.likes - 1)
+                                else it
+                            })
+                )
+                _dataState.value = FeedModelState()
+            } catch (e: Exception) {
+                lastAction = ActionType.DISLIKE
+                lastLikedID = id
+                _dataState.value = FeedModelState(error = true)
+            }
+        }
     }
 
     fun removeById(id: Long) {
-        TODO()
+        lastAction = null
+        lastRemovedID = null
+
+        viewModelScope.launch {
+            try {
+                repository.removeById(id)
+                val updated = _data.value?.posts.orEmpty().filter {it.id != id}
+                _data.postValue(
+                    _data.value?.copy(
+                        posts = updated
+                    )
+                )
+            } catch (e: Exception) {
+                lastAction = ActionType.REMOVE
+                lastRemovedID = id
+                val old = data.value?.posts.orEmpty()
+                _dataState.value = FeedModelState(error = true)
+                _data.postValue(_data.value?.copy(posts = old))
+            }
+        }
+    }
+
+    private var lastAction: ActionType? = null
+    private var lastLikedID: Long? = null
+    private var lastDisLikedID: Long? = null
+    private var lastRemovedID: Long? = null
+    private var lastSaved: Long? = null
+
+    fun retry() {
+        when (lastAction) {
+            ActionType.SAVE -> retrySave()
+            ActionType.LIKE -> retryLike()
+            ActionType.DISLIKE -> retryDisLike()
+            ActionType.REMOVE -> retryRemove()
+            else -> loadPosts()
+        }
+    }
+
+    private fun retryDisLike() {
+        lastDisLikedID?.let {
+            disLikeById(it)
+        }
+    }
+
+    private fun retrySave() {
+        lastSaved?.let {
+            save()
+        }
+    }
+
+    private fun retryRemove() {
+        lastRemovedID?.let {
+            removeById(it)
+        }
+    }
+
+    private fun retryLike() {
+        lastLikedID?.let {
+            likeById(it)
+        }
+    }
+
+    enum class ActionType {
+        SAVE,
+        LIKE,
+        REMOVE,
+        DISLIKE
     }
 }

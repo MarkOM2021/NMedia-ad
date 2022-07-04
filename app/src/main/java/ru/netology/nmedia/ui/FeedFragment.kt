@@ -16,6 +16,7 @@ import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.ui.PreviewPostFragment.Companion.postID
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 @AndroidEntryPoint
@@ -37,7 +38,8 @@ class FeedFragment : Fragment() {
             }
 
             override fun onLike(post: Post) {
-                viewModel.likeById(post.id)
+                if (post.likedByMe) viewModel.disLikeById(post.id)
+                else viewModel.likeById(post.id)
             }
 
             override fun onRemove(post: Post) {
@@ -54,6 +56,14 @@ class FeedFragment : Fragment() {
                 val shareIntent =
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
+            }
+
+            override fun onPreview(post: Post) {
+                findNavController().navigate(
+                    R.id.action_mainActivity_to_post_preview,
+                    Bundle().apply {
+                        postID = post.id
+                    })
             }
         })
         binding.list.adapter = adapter
@@ -77,6 +87,10 @@ class FeedFragment : Fragment() {
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+        }
+
+        binding.retryAgainButton.setOnClickListener {
+            viewModel.retry()
         }
 
         return binding.root

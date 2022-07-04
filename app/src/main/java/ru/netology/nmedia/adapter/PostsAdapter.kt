@@ -12,12 +12,14 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.view.loadCircleCrop
+import java.text.DecimalFormat
 
 interface OnInteractionListener {
     fun onLike(post: Post) {}
     fun onEdit(post: Post) {}
     fun onRemove(post: Post) {}
     fun onShare(post: Post) {}
+    fun onPreview(post: Post) {}
 }
 
 class PostsAdapter(
@@ -46,7 +48,8 @@ class PostViewHolder(
             content.text = post.content
             avatar.loadCircleCrop("${BuildConfig.BASE_URL}/avatars/${post.authorAvatar}")
             like.isChecked = post.likedByMe
-            like.text = "${post.likes}"
+            like.text = eventNumberFormatter(post.likes)
+            share.text = eventNumberFormatter(post.shares)
 
             menu.visibility = if (post.ownedByMe) View.VISIBLE else View.INVISIBLE
 
@@ -90,5 +93,27 @@ class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
 
     override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
         return oldItem == newItem
+    }
+}
+
+fun eventNumberFormatter(num: Int): String {
+    val numDouble = num.toDouble()
+    val df = DecimalFormat("#.#")
+    when (num) {
+        in 0..1_099 -> {
+            return "$num"
+        }
+        in 1_100..10_000 -> {
+            val rounded = df.format(numDouble / 1_000)
+            return rounded + "K"
+        }
+        in 10001..999999 -> {
+            val roundedK = num / 1_000
+            return "$roundedK" + "K"
+        }
+        else -> {
+            val roundedM = df.format(numDouble / 1_000_000)
+            return roundedM + "M"
+        }
     }
 }

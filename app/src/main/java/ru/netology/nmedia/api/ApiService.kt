@@ -7,12 +7,13 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.*
-//import ru.netology.nmedia.BuildConfig.BASE_URL
+import ru.netology.nmedia.BuildConfig.BASE_URL
+import ru.netology.nmedia.dto.Auth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.dto.PushToken
 
-private const val BASE_URL_Slow = "http://10.0.2.2:9999/api/slow/"
+private const val BASE_URL_Slow = "$BASE_URL/api/slow/"
 
 fun okhttp(vararg interceptors: Interceptor): OkHttpClient = OkHttpClient.Builder()
     .apply {
@@ -56,4 +57,8 @@ interface ApiService {
     @Multipart
     @POST("media")
     suspend fun upload(@Part media: MultipartBody.Part): Response<Media>
+
+    @FormUrlEncoded
+    @POST("users/authentication")
+    suspend fun updateUser(@Field("login") login: String, @Field("pass") pass: String): Response<Auth>
 }

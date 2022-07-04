@@ -29,4 +29,11 @@
     <string name="sign_in">Вход</string>
     <string name="sign_up">Регистрация</string>
     <string name="sign_out">Выход</string>
+    <string name="Cancel">Выход</string>
+    <string name="content_hint">content hint</string>
+    <string name="server_error">Ошибка сервера</string>
+    <string name="retry_loading_server">Повторно подключиться</string>
+    <string name="login">логин</string>
+    <string name="password">пароль</string>
+    <string name="enter_login_and_password">Введите логин и пароль</string>
 </resources>

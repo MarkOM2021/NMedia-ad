@@ -85,11 +85,46 @@ class PostRepositoryImpl @Inject constructor(
     }
 
     override suspend fun removeById(id: Long) {
-        TODO("Not yet implemented")
+        try {
+            val result = apiService.removeById(id)
+            if (!result.isSuccessful) {
+                throw ApiError(result.code(), result.message())
+            }
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
     }
 
     override suspend fun likeById(id: Long) {
-        TODO("Not yet implemented")
+        try {
+            val result = apiService.likeById(id)
+            if (!result.isSuccessful) {
+                throw ApiError(result.code(), result.message())
+            }
+            val body = result.body() ?: throw ApiError(result.code(), result.message())
+            postDao.insert(PostEntity.fromDto(body))
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
+    }
+
+    override suspend fun disLikeById(id: Long) {
+        try {
+            val result = apiService.dislikeById(id)
+            if (!result.isSuccessful) {
+                throw ApiError(result.code(), result.message())
+            }
+            val body = result.body() ?: throw ApiError(result.code(), result.message())
+            postDao.insert(PostEntity.fromDto(body))
+        } catch (e: IOException) {
+            throw NetworkError
+        } catch (e: Exception) {
+            throw UnknownError
+        }
     }
 
     override suspend fun upload(upload: MediaUpload): Media {

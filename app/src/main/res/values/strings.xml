@@ -28,4 +28,11 @@
     <string name="sign_in">Sign In</string>
     <string name="sign_up">Sign Up</string>
     <string name="sign_out">Sign Out</string>
+    <string name="Cancel" >Cancel</string>
+    <string name="content_hint">content hint</string>
+    <string name="server_error">Server error</string>
+    <string name="retry_loading_server">Retry server loading</string>
+    <string name="enter_login_and_password">Enter login and password</string>
+    <string name="login">login</string>
+    <string name="password">password</string>
 </resources>

@@ -9,11 +9,12 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import com.google.android.gms.common.ConnectionResult
-import com.google.android.gms.common.GoogleApiAvailability
-import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.auth.AppAuth
+import com.google.android.gms.common.GoogleApiAvailability
+import com.google.firebase.messaging.FirebaseMessaging
+import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.ui.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.viewmodel.AuthViewModel
 import javax.inject.Inject
@@ -21,8 +22,17 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class AppActivity : AppCompatActivity(R.layout.activity_app) {
     @Inject
+    lateinit var  repository: PostRepository
+
+    @Inject
     lateinit var auth: AppAuth
     private val viewModel: AuthViewModel by viewModels()
+
+    @Inject
+    lateinit var fireBaseMessaging: FirebaseMessaging
+
+    @Inject
+    lateinit var googleApiAvailability: GoogleApiAvailability
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,7 +61,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
             invalidateOptionsMenu()
         }
 
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+        fireBaseMessaging.token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 println("some stuff happened: ${task.exception}")
                 return@addOnCompleteListener
@@ -77,13 +87,19 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.signin -> {
-                // TODO: just hardcode it, implementation must be in homework
-                auth.setAuth(5, "x-token")
+                findNavController(R.id.nav_host_fragment)
+                    .navigate(
+                        R.id.authFragment,
+                    )
+                //auth.setAuth(5, "x-token")
                 true
             }
             R.id.signup -> {
-                // TODO: just hardcode it, implementation must be in homework
-                auth.setAuth(5, "x-token")
+                findNavController(R.id.nav_host_fragment)
+                    .navigate(
+                        R.id.authFragment,
+                    )
+                //auth.setAuth(5, "x-token")
                 true
             }
             R.id.signout -> {
@@ -96,7 +112,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
     }
 
     private fun checkGoogleApiAvailability() {
-        with(GoogleApiAvailability.getInstance()) {
+        with(googleApiAvailability) {
             val code = isGooglePlayServicesAvailable(this@AppActivity)
             if (code == ConnectionResult.SUCCESS) {
                 return@with

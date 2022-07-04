@@ -11,6 +11,7 @@ data class Post(
     val published: Long,
     val likedByMe: Boolean,
     val likes: Int = 0,
+    val shares: Int = 0,
     val attachment: Attachment? = null,
     val ownedByMe: Boolean = false,
 )
