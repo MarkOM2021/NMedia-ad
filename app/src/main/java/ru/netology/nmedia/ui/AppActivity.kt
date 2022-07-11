@@ -29,7 +29,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
     private val viewModel: AuthViewModel by viewModels()
 
     @Inject
-    lateinit var fireBaseMessaging: FirebaseMessaging
+    lateinit var firebaseMessaging: FirebaseMessaging
 
     @Inject
     lateinit var googleApiAvailability: GoogleApiAvailability
@@ -61,7 +61,7 @@ class AppActivity : AppCompatActivity(R.layout.activity_app) {
             invalidateOptionsMenu()
         }
 
-        fireBaseMessaging.token.addOnCompleteListener { task ->
+        firebaseMessaging.token.addOnCompleteListener { task ->
             if (!task.isSuccessful) {
                 println("some stuff happened: ${task.exception}")
                 return@addOnCompleteListener

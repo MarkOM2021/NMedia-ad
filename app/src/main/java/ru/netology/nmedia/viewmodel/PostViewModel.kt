@@ -3,18 +3,21 @@ package ru.netology.nmedia.viewmodel
 import android.net.Uri
 import androidx.core.net.toFile
 import androidx.lifecycle.*
+import androidx.paging.*
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
+import ru.netology.nmedia.repository.PostPagingSource
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import javax.inject.Inject
@@ -36,19 +39,27 @@ private val noPhoto = PhotoModel()
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
+    private val apiService: ApiService,
     auth: AppAuth,
 ) : ViewModel() {
-    private val _data = MutableLiveData<FeedModel>()
-    val data: LiveData<FeedModel> = auth.authStateFlow
+
+    private val authInfo: Flow<PagingData<Post>> = Pager(
+        config = PagingConfig(10, enablePlaceholders = false),
+        pagingSourceFactory =  {
+            PostPagingSource(apiService)
+        }
+    ).flow
+
+    val data: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            repository.data
-                .map { posts ->
-                    FeedModel(
-                        posts.map { it.copy(ownedByMe = it.authorId == myId) },
-                        posts.isEmpty()
-                    )
+            authInfo.map { pagingData ->
+                pagingData.map { post ->
+                    post.copy(ownedByMe = post.authorId == myId)
                 }
-        }.asLiveData(Dispatchers.Default)
+            }
+        }
+
+    private val _data = MutableLiveData<FeedModel>()
 
     private val _dataState = MutableLiveData<FeedModelState>()
     val dataState: LiveData<FeedModelState>
@@ -70,7 +81,7 @@ class PostViewModel @Inject constructor(
     fun loadPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(loading = true)
-            repository.getAll()
+            //repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = true)
@@ -80,7 +91,7 @@ class PostViewModel @Inject constructor(
     fun refreshPosts() = viewModelScope.launch {
         try {
             _dataState.value = FeedModelState(refreshing = true)
-            repository.getAll()
+            //repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {
             _dataState.value = FeedModelState(error = true)
@@ -129,7 +140,7 @@ class PostViewModel @Inject constructor(
                 repository.likeById(id)
                 _data.postValue(
                     _data.value?.copy(
-                        posts = data.value?.posts.orEmpty()
+                        posts = _data.value?.posts.orEmpty()
                             .map {
                                 if (it.id == id) it.copy(likedByMe = true, likes = it.likes + 1)
                                 else it
@@ -152,7 +163,7 @@ class PostViewModel @Inject constructor(
                 repository.disLikeById(id)
                 _data.postValue(
                     _data.value?.copy(
-                        posts = data.value?.posts.orEmpty()
+                        posts = _data.value?.posts.orEmpty()
                             .map {
                                 if (it.id == id) it.copy(likedByMe = false, likes = it.likes - 1)
                                 else it
@@ -183,7 +194,7 @@ class PostViewModel @Inject constructor(
             } catch (e: Exception) {
                 lastAction = ActionType.REMOVE
                 lastRemovedID = id
-                val old = data.value?.posts.orEmpty()
+                val old = _data.value?.posts.orEmpty()
                 _dataState.value = FeedModelState(error = true)
                 _data.postValue(_data.value?.copy(posts = old))
             }

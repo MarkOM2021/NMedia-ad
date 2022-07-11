@@ -9,7 +9,7 @@ import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
-object FireBaseModule {
+object FirebaseModule {
     @Provides
     @Singleton
     fun provideFireBaseMessaging(): FirebaseMessaging {

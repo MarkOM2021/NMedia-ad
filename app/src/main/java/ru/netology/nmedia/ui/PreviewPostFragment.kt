@@ -16,7 +16,7 @@ import ru.netology.nmedia.viewmodel.PostViewModel
 
 class PreviewPostFragment : Fragment() {
 
-    override fun onCreateView(
+    /*override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -66,5 +66,5 @@ class PreviewPostFragment : Fragment() {
 
     companion object {
         var Bundle.postID: Long by PostFinder
-    }
+    }*/
 }
