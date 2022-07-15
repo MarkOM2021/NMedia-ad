@@ -1,9 +1,10 @@
-package ru.netology.nmedia.api
+package ru.netology.nmedia.modules
 
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import ru.netology.nmedia.api.*
 import ru.netology.nmedia.auth.AppAuth
 import javax.inject.Singleton
 
