@@ -12,12 +12,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dao.PostRemoteKeyDao
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
-import ru.netology.nmedia.repository.PostPagingSource
+import ru.netology.nmedia.repository.PostRemoteMediator
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import javax.inject.Inject
@@ -35,21 +39,32 @@ private val empty = Post(
 
 private val noPhoto = PhotoModel()
 
-@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
-    private val apiService: ApiService,
+    postDao: PostDao,
+    apiService: ApiService,
+    postRemoteKeyDao: PostRemoteKeyDao,
+    appDb: AppDb,
     auth: AppAuth,
 ) : ViewModel() {
 
+    @OptIn(ExperimentalPagingApi::class)
     private val authInfo: Flow<PagingData<Post>> = Pager(
         config = PagingConfig(10, enablePlaceholders = false),
-        pagingSourceFactory =  {
-            PostPagingSource(apiService)
-        }
+        remoteMediator = PostRemoteMediator(
+            service = apiService,
+            appDb = appDb,
+            postDao = postDao,
+            postRemoteKeyDao = postRemoteKeyDao
+        ),
+        pagingSourceFactory = { postDao.getPagingSource() },
     ).flow
+        .map {
+        it.map(PostEntity::toDto)
+    }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val data: Flow<PagingData<Post>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
             authInfo.map { pagingData ->
