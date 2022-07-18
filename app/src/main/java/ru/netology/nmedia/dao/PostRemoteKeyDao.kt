@@ -13,10 +13,10 @@ interface PostRemoteKeyDao {
     @Query("SELECT COUNT(*) == 0 FROM PostRemoteKeyEntity")
     suspend fun isEmpty(): Boolean
 
-    @Query("SELECT MAX('key') FROM PostRemoteKeyEntity")
+    @Query("SELECT MAX('id') FROM PostRemoteKeyEntity")
     suspend fun max(): Long?
 
-    @Query("SELECT MIN('key') FROM PostRemoteKeyEntity")
+    @Query("SELECT MIN('id') FROM PostRemoteKeyEntity")
     suspend fun min(): Long?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

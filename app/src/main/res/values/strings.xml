@@ -35,4 +35,5 @@
     <string name="enter_login_and_password">Enter login and password</string>
     <string name="login">login</string>
     <string name="password">password</string>
+    <string name="ad_description">ad</string>
 </resources>

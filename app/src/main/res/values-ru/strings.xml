@@ -36,4 +36,5 @@
     <string name="login">логин</string>
     <string name="password">пароль</string>
     <string name="enter_login_and_password">Введите логин и пароль</string>
+    <string name="ad_description">реклама</string>
 </resources>

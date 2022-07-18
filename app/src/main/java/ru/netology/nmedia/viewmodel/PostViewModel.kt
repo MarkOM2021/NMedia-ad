@@ -10,21 +10,18 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.dao.PostDao
-import ru.netology.nmedia.dao.PostRemoteKeyDao
-import ru.netology.nmedia.db.AppDb
+import ru.netology.nmedia.dto.Ad
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.MediaUpload
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
-import ru.netology.nmedia.repository.PostRemoteMediator
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import javax.inject.Inject
+import kotlin.random.Random
 
 private val empty = Post(
     id = 0,
@@ -42,36 +39,35 @@ private val noPhoto = PhotoModel()
 @HiltViewModel
 class PostViewModel @Inject constructor(
     private val repository: PostRepository,
-    postDao: PostDao,
-    apiService: ApiService,
-    postRemoteKeyDao: PostRemoteKeyDao,
-    appDb: AppDb,
     auth: AppAuth,
 ) : ViewModel() {
 
-    @OptIn(ExperimentalPagingApi::class)
-    private val authInfo: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(10, enablePlaceholders = false),
-        remoteMediator = PostRemoteMediator(
-            service = apiService,
-            appDb = appDb,
-            postDao = postDao,
-            postRemoteKeyDao = postRemoteKeyDao
-        ),
-        pagingSourceFactory = { postDao.getPagingSource() },
-    ).flow
-        .map {
-        it.map(PostEntity::toDto)
-    }
+    private val cached: Flow<PagingData<FeedItem>> = repository
+        .data
+        .map { pagingData ->
+            pagingData.insertSeparators(
+                generator = { before, _ ->
+                    if (before?.id?.rem(5) != 0L) null else
+                        Ad(
+                            Random.nextLong(),
+                            "https://netology.ru",
+                            "figma.jpg"
+                        )
+                }
+            )
+        }
+        .cachedIn(viewModelScope)
+
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val data: Flow<PagingData<Post>> = auth.authStateFlow
+    val data: Flow<PagingData<FeedItem>> = auth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            authInfo.map { pagingData ->
-                pagingData.map { post ->
-                    post.copy(ownedByMe = post.authorId == myId)
+            cached
+                .map { pagingData ->
+                    pagingData.map { item ->
+                        if (item !is Post) item else item.copy(ownedByMe = item.authorId == myId)
+                    }
                 }
-            }
         }
 
     private val _data = MutableLiveData<FeedModel>()

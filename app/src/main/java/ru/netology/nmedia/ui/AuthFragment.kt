@@ -5,9 +5,11 @@ import android.view.*
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.databinding.FragmentAuthBinding
 import ru.netology.nmedia.viewmodel.SetAuthViewModel
 
+@AndroidEntryPoint
 class AuthFragment : Fragment() {
 
     private val viewModel: SetAuthViewModel by viewModels(
