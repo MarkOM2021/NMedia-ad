@@ -42,21 +42,22 @@ class PostViewModel @Inject constructor(
     auth: AppAuth,
 ) : ViewModel() {
 
-    private val cached: Flow<PagingData<FeedItem>> = repository
-        .data
-        .map { pagingData ->
-            pagingData.insertSeparators(
-                generator = { before, _ ->
-                    if (before?.id?.rem(5) != 0L) null else
-                        Ad(
-                            Random.nextLong(),
-                            "https://netology.ru",
-                            "figma.jpg"
-                        )
-                }
-            )
-        }
-        .cachedIn(viewModelScope)
+    private val cached: Flow<PagingData<FeedItem>>
+        get() = repository
+            .data
+            .map { pagingData ->
+                pagingData.insertSeparators(
+                    generator = { before, _ ->
+                        if (before?.id?.rem(5) != 0L) null else
+                            Ad(
+                                Random.nextLong(),
+                                "https://netology.ru",
+                                "figma.jpg"
+                            )
+                    }
+                )
+            }
+            .cachedIn(viewModelScope)
 
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -196,7 +197,7 @@ class PostViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 repository.removeById(id)
-                val updated = _data.value?.posts.orEmpty().filter {it.id != id}
+                val updated = _data.value?.posts.orEmpty().filter { it.id != id }
                 _data.postValue(
                     _data.value?.copy(
                         posts = updated
