@@ -25,26 +25,28 @@ import javax.inject.Singleton
 
 @Singleton
 class PostRepositoryImpl @Inject constructor(
+    private val appDb: AppDb,
     private val postDao: PostDao,
+    private val postRemoteKeyDao: PostRemoteKeyDao,
     private val apiService: ApiService,
-    postRemoteKeyDao: PostRemoteKeyDao,
-    appDb: AppDb
 ) : PostRepository {
     @OptIn(ExperimentalPagingApi::class)
-    override val data: Flow<PagingData<Post>> = Pager(
-        config = PagingConfig(pageSize = 50, enablePlaceholders = false),
-        pagingSourceFactory = { postDao.getPagingSource() },
-        remoteMediator = PostRemoteMediator(
-            service = apiService,
-            appDb = appDb,
-            postDao = postDao,
-            postRemoteKeyDao = postRemoteKeyDao
-        ),
+    override val data: Flow<PagingData<Post>>
+    get() = Pager(
+            config = PagingConfig(pageSize = 50, enablePlaceholders = false),
+            pagingSourceFactory = { postDao.getPagingSource() },
+            remoteMediator = PostRemoteMediator(
+                service = apiService,
+                postDao = postDao,
+                postRemoteKeyDao = postRemoteKeyDao,
+                appDb = appDb,
+            ),
 
-    ).flow
-        .map{
-            it.map(PostEntity::toDto)
-        }
+            ).flow
+            .map {
+                it.map(PostEntity::toDto)
+            }
+
     /* вместо метода-reference можем написать через лямбду:
             it.map {
                 it.toDto()
