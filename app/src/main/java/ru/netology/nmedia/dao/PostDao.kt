@@ -31,4 +31,5 @@ interface PostDao {
 
     @Query("DELETE FROM PostEntity")
     suspend fun clear()
+    //добавили метод удаления записи
 }
